@@ -9,6 +9,45 @@ interface ChatMessage {
   text: string;
 }
 
+const SHEET_ID = '1f2ijK-nvkLWbWeIS6hu7HhFifUCKwnsJm7TwUaTY4YY';
+
+async function fetchSheet(gid: string): Promise<string> {
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}`;
+  const res = await fetch(url);
+  if (!res.ok) return '';
+  return res.text();
+}
+
+function findRelevantQA(csv: string, question: string): string {
+  const lines = csv.split('\n').slice(1);
+  const q = question.toLowerCase();
+  const matched: string[] = [];
+
+  for (const line of lines) {
+    const cols = line.split(',');
+    const questionCol = (cols[0] || '').replace(/"/g, '').toLowerCase();
+    const answerCol = (cols[1] || '').replace(/"/g, '');
+    if (!questionCol || !answerCol) continue;
+
+    // 質問との関連度チェック（共通ワードで簡易マッチ）
+    const words = q.split(/[\s　、。？！]+/).filter(w => w.length > 1);
+    const hit = words.some(w => questionCol.includes(w));
+    if (hit) {
+      matched.push(`Q: ${cols[0].replace(/"/g, '')}\nA: ${answerCol}`);
+    }
+    if (matched.length >= 3) break;
+  }
+  return matched.join('\n\n');
+}
+
+function getRandomCard(csv: string): string {
+  const lines = csv.split('\n').slice(1).filter(l => l.trim());
+  if (!lines.length) return '';
+  const line = lines[Math.floor(Math.random() * lines.length)];
+  const cols = line.split(',');
+  return (cols[0] || '').replace(/"/g, '').trim();
+}
+
 export const onRequestPost: PagesFunction<Env> = async (context) => {
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -37,6 +76,29 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       );
     }
 
+    // Google Sheetから並列取得
+    const [qaCsv, cardCsv] = await Promise.all([
+      fetchSheet('0'),
+      fetchSheet('1625115856'),
+    ]);
+
+    // 関連Q&Aを検索
+    const relevantQA = findRelevantQA(qaCsv, message);
+
+    // ランダム対話カードを取得
+    const dialogueCard = getRandomCard(cardCsv);
+
+    // プロンプトにSheetデータを追加
+    const enrichedPrompt = `${SUKE_SYSTEM_PROMPT}
+
+---
+【参考：関連するQ&Aデータ】
+${relevantQA || '（該当なし）'}
+
+【今日の対話カード候補】
+${dialogueCard || '最近、相手の頑張りを感じた瞬間は？'}
+---`;
+
     // 会話履歴を整形
     const formattedHistory = (history || []).map((h: ChatMessage) => ({
       role: h.role === 'user' ? 'user' : 'model',
@@ -51,7 +113,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           system_instruction: {
-            parts: [{ text: SUKE_SYSTEM_PROMPT }],
+            parts: [{ text: enrichedPrompt }],
           },
           contents: [
             ...formattedHistory,
@@ -92,3 +154,4 @@ export const onRequestOptions: PagesFunction = async () => {
     },
   });
 };
+
