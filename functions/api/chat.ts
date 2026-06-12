@@ -59,7 +59,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
           ],
           generationConfig: {
             temperature: 0.8,
-            maxOutputTokens: 1024,
+            maxOutputTokens: 2048,
           },
         }),
       }
