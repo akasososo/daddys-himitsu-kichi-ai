@@ -1,0 +1,6 @@
+{
+  "name": "DADDY’S秘密基地ダイアローグ",
+  "description": "宮古島在住の「島のパパ」の実体験に基づき、パパたちの夫婦関係や育児の悩みに温かく寄り添う対話AI。",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
