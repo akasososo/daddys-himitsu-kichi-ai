@@ -751,7 +751,7 @@ export default function App() {
                 </div>
                 <h4 className="text-sm font-semibold text-[#4A443F] font-serif">オンライン「お疲れさま」広場</h4>
                 <p className="text-[11px] text-[#7A746C] leading-relaxed">
-                  毎月第一土曜日の夜、同じように仕事や家庭の狭間で悩む全国のパパたちが、宮古島の海に吹く風のように穏やかにオンラインで集まり、夫婦関係や子育ての寂しさをありのまま静かに話し合います。
+                  毎一土曜日の朝（不定期）、同じように仕事や家庭の狭間で悩む全国のパパたちが、宮古島の海に吹く風のように穏やかにオンラインで集まり、夫婦関係や子育ての寂しさをありのまま静かに話し合います。
                 </p>
                 <div className="mt-2 bg-[#F8F6F2] p-2.5 rounded-lg border border-[#CBC4B9]/60 text-[10px] italic font-sans animate-pulse">
                   🌾 次回: 宮古島からのオンライン対話会（無料・完全匿名参加可）
